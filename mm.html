@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>To-Do List</title>
+    <style>
+        /* Set up moving background with galaxy/stars */
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            height: 100vh;
+            overflow: hidden;
+            background: url('Screenshot 2024-11-09 114017.png') no-repeat center center fixed; 
+            background-size: cover;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            animation: moveBackground 30s linear infinite;
+        }
+
+        /* Keyframes for moving background effect */
+        @keyframes moveBackground {
+            0% {
+                background-position: 0 0;
+            }
+            100% {
+                background-position: 100% 100%;
+            }
+        }
+
+        /* Overlay for text visibility */
+        .overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.6); /* Darken the background for contrast */
+        }
+
+        /* Container for the to-do list application */
+        .container {
+            position: relative;
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0px 10px 15px rgba(0, 0, 0, 0.2);
+            width: 400px;
+            backdrop-filter: blur(10px);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 2.5em;
+            color: #431d5f;
+            margin-bottom: 20px;
+            font-family: 'Courier New', Courier, monospace;
+        }
+
+        .input-container {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+
+        input[type="text"] {
+            width: 70%;
+            padding: 15px;
+            margin-right: 10px;
+            border: 2px solid #ccc;
+            border-radius: 5px;
+            font-size: 16px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus {
+            border-color: #431d5f;
+        }
+
+        button {
+            padding: 15px 20px;
+            background-color: #ba4584;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #ba4584;
+        }
+
+        ul {
+            list-style-type: none;
+            padding: 0;
+            margin-top: 20px;
+            width: 100%;
+        }
+
+        li {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 10px;
+            background-color: rgba(0, 0, 0, 0.2);
+            transition: background-color 0.3s;
+            width: 100%;
+        }
+
+        li:hover {
+            background-color: rgba(0, 0, 0, 0.4);
+        }
+
+        .completed {
+            text-decoration: line-through;
+            color: #888;
+        }
+
+        /* Buttons inside li (Undo and Delete) */
+        .task-buttons {
+            display: flex;
+            gap: 10px; /* Space between the buttons */
+        }
+
+        .delete-btn, .complete-btn {
+            padding: 8px 12px;
+            border-radius: 5px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .delete-btn {
+            background-color: #ba4584;
+        }
+
+        .delete-btn:hover {
+            background-color: #ba4584;
+        }
+
+        .complete-btn {
+            background-color: #431d5f;
+        }
+
+        .complete-btn:hover {
+            background-color: #431d5f;
+        }
+
+        .footer {
+            text-align: center;
+            font-size: 12px;
+            margin-top: 20px;
+            color: #ccc;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 600px) {
+            .container {
+                width: 90%;
+            }
+
+            h1 {
+                font-size: 2em;
+            }
+
+            input[type="text"], button {
+                font-size: 14px;
+            }
+
+            button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="overlay"></div> <!-- Dark overlay for better contrast -->
+    <div class="container">
+        <h1>To-Do List</h1>
+        <div class="input-container">
+            <input type="text" id="taskInput" placeholder="Enter a task...">
+            <button onclick="addTask()">Add Task</button>
+        </div>
+        <ul id="taskList"></ul>
+        <div class="footer">
+            <p>&copy; 2024 To-Do List Application</p>
+        </div>
+    </div>
+
+    <script>
+        // Load tasks from local storage
+        document.addEventListener('DOMContentLoaded', loadTasks);
+
+        function loadTasks() {
+            const tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+            const taskList = document.getElementById('taskList');
+            taskList.innerHTML = '';
+
+            tasks.forEach((task, index) => {
+                const li = document.createElement('li');
+                li.classList.toggle('completed', task.completed);
+
+                const taskText = document.createElement('span');
+                taskText.textContent = task.text;
+
+                const taskButtons = document.createElement('div');
+                taskButtons.classList.add('task-buttons');
+
+                const completeButton = document.createElement('button');
+                completeButton.textContent = task.completed ? 'Undo' : 'Complete';
+                completeButton.classList.add('complete-btn');
+                completeButton.onclick = () => toggleComplete(index);
+
+                const deleteButton = document.createElement('button');
+                deleteButton.textContent = 'Delete';
+                deleteButton.classList.add('delete-btn');
+                deleteButton.onclick = () => deleteTask(index);
+
+                taskButtons.appendChild(completeButton);
+                taskButtons.appendChild(deleteButton);
+
+                li.appendChild(taskText);
+                li.appendChild(taskButtons);
+                taskList.appendChild(li);
+            });
+        }
+
+        function addTask() {
+            const taskInput = document.getElementById('taskInput');
+            const taskText = taskInput.value.trim();
+
+            if (taskText) {
+                const tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+                tasks.push({ text: taskText, completed: false });
+                localStorage.setItem('tasks', JSON.stringify(tasks));
+
+                taskInput.value = ''; // Clear the input field
+                loadTasks(); // Reload tasks
+            } else {
+                alert("Please enter a task.");
+            }
+        }
+
+        function toggleComplete(index) {
+            const tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+            tasks[index].completed = !tasks[index].completed;
+            localStorage.setItem('tasks', JSON.stringify(tasks));
+            loadTasks(); // Reload tasks after toggling completion
+        }
+
+        function deleteTask(index) {
+            const tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+            tasks.splice(index, 1); // Remove the task at the given index
+            localStorage.setItem('tasks', JSON.stringify(tasks));
+            loadTasks(); // Reload tasks after deletion
+        }
+    </script>
+</body>
+</html>
